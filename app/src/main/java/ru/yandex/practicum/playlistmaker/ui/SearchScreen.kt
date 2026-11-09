@@ -21,11 +21,18 @@ import ru.yandex.practicum.playlistmaker.domain.Track
 fun SearchScreen(viewModel: SearchViewModel, onTrack: (Long) -> Unit, back: () -> Unit) {
     val query by viewModel.query.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val history by viewModel.history.collectAsStateWithLifecycle()
     Screen(stringResource(R.string.search), back) { padding ->
         Column(Modifier.padding(padding).padding(horizontal = 16.dp)) {
             SearchField(query, viewModel::changeQuery, viewModel::search)
             when (val current = state) {
-                SearchState.Initial -> Unit
+                SearchState.Initial -> if (query.isBlank() && history.isNotEmpty()) {
+                    Text(stringResource(R.string.history), Modifier.padding(vertical = 16.dp), style = MaterialTheme.typography.titleMedium)
+                    LazyColumn(Modifier.weight(1f)) {
+                        items(history, key = { it }) { value -> ListItem(headlineContent = { Text(value) }, modifier = Modifier.clickable { viewModel.selectHistory(value) }) }
+                        item { TextButton(viewModel::clearHistory) { Text(stringResource(R.string.clear_history)) } }
+                    }
+                }
                 SearchState.Searching -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 SearchState.Failure -> Column { Text(stringResource(R.string.search_error)); Button(viewModel::search) { Text(stringResource(R.string.retry)) } }
                 is SearchState.Success -> if (current.tracks.isEmpty()) Text(stringResource(R.string.empty_results)) else {

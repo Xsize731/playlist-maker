@@ -25,18 +25,25 @@ class SearchViewModel(private val tracks: TracksRepository, private val historyR
 
     fun changeQuery(value: String) {
         savedState["query"] = value
-        if (value.isBlank()) { searchJob?.cancel(); _state.value = SearchState.Initial }
+        searchJob?.cancel()
+        _state.value = SearchState.Initial
+        if (value.isNotBlank()) searchJob = viewModelScope.launch { delay(500); performSearch(value.trim()) }
     }
     fun search() {
         searchJob?.cancel()
         val value = query.value.trim()
         if (value.isBlank()) { _state.value = SearchState.Initial; return }
-        searchJob = viewModelScope.launch {
-            _state.value = SearchState.Searching
-            try { _state.value = SearchState.Success(tracks.searchTracks(value)) }
-            catch (e: CancellationException) { throw e }
-            catch (_: Exception) { _state.value = SearchState.Failure }
-        }
+        searchJob = viewModelScope.launch { performSearch(value) }
     }
+    private suspend fun performSearch(value: String) {
+        _state.value = SearchState.Searching
+        try {
+            val result = tracks.searchTracks(value)
+            historyRepository.add(value)
+            _state.value = SearchState.Success(result)
+        } catch (e: CancellationException) { throw e }
+        catch (_: Exception) { _state.value = SearchState.Failure }
+    }
+    fun selectHistory(value: String) { changeQuery(value); search() }
     fun clearHistory() { viewModelScope.launch { historyRepository.clear() } }
 }
