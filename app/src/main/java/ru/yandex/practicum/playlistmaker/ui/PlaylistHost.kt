@@ -12,6 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import org.koin.androidx.compose.koinViewModel
 import ru.yandex.practicum.playlistmaker.R
 
 enum class Destination { MAIN, SEARCH, SETTINGS }
@@ -25,7 +26,8 @@ fun PlaylistHost(navController: NavHostController = rememberNavController()) {
                 onSettings = { navController.navigate(Destination.SETTINGS.name) }
             )
         }
-        composable(Destination.SEARCH.name) { SearchScreen { navController.popBackStack() } }
+        composable(Destination.SEARCH.name) { SearchScreen(koinViewModel(), { id -> navController.navigate("track/$id") }) { navController.popBackStack() } }
+        composable("track/{id}") { Screen(stringResource(R.string.track_details), { navController.popBackStack() }) { padding -> Text("Track ${it.arguments?.getString("id")}", Modifier.padding(padding)) } }
         composable(Destination.SETTINGS.name) { SettingsScreen { navController.popBackStack() } }
     }
 }
@@ -41,13 +43,5 @@ fun MainScreen(onSearch: () -> Unit, onSettings: () -> Unit) {
                 Text(stringResource(label), style = MaterialTheme.typography.titleLarge)
             }
         }
-    }
-}
-
-@Composable
-fun SearchScreen(back: () -> Unit) {
-    var query by rememberSaveable { mutableStateOf("") }
-    Screen(stringResource(R.string.search), back) { padding ->
-        Column(Modifier.padding(padding).padding(16.dp)) { SearchField(query, { query = it }, {}) }
     }
 }
