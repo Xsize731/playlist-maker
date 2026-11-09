@@ -38,4 +38,3 @@ APK: `app/build/outputs/apk/debug/app-debug.apk` и `bottomsheet-lab/build/outpu
 - feature/sprint-07: отдельное приложение с FAB и ModalBottomSheet.
 - feature/sprint-08: debounce, история, детали трека и плейлисты.
 
-Перед отправкой преподавателю проверьте требования вашего вуза и заполните форму самостоятельно. Результат автоматических тестов не заменяет решение преподавателя.
