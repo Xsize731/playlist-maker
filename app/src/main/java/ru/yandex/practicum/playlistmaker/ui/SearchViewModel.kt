@@ -23,7 +23,10 @@ class SearchViewModel(private val tracks: TracksRepository, private val historyR
     val state = _state.asStateFlow()
     private var searchJob: Job? = null
 
-    fun changeQuery(value: String) { savedState["query"] = value }
+    fun changeQuery(value: String) {
+        savedState["query"] = value
+        if (value.isBlank()) { searchJob?.cancel(); _state.value = SearchState.Initial }
+    }
     fun search() {
         searchJob?.cancel()
         val value = query.value.trim()
